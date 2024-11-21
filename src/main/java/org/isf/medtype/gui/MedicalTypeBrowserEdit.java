@@ -291,7 +291,7 @@ public class MedicalTypeBrowserEdit extends JDialog {
 			jDataPanel.add(getCodeTextField());
 			jDataPanel.add(new JLabel(MessageBundle.getMessage("angal.common.description.txt") + ':'));
 			jDataPanel.add(getDescriptionTextField());
-			jDataPanel.add(new JLabel(MessageBundle.getMessage("angal.common.description.txt") + ':'));
+			jDataPanel.add(new JLabel(MessageBundle.getMessage("Active") + ':'));
 			jDataPanel.add(getActiveField());
 			SpringUtilities.makeCompactGrid(jDataPanel, 3, 2, 5, 5, 5, 5);
 		}
