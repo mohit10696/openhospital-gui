@@ -23,11 +23,9 @@ package org.isf.medtype.gui;
 
 import java.awt.AWTEvent;
 import java.awt.BorderLayout;
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -53,26 +51,19 @@ import org.isf.utils.jobjects.ModalJFrame;
 public class MedicalTypeBrowser extends ModalJFrame implements MedicalTypeListener {
 
 	private static final long serialVersionUID = 1L;
-	
-	private static final String STR_ALL = MessageBundle.getMessage("angal.common.all.txt");
-	private static final String STR_ACTIVE_ONLY = MessageBundle.getMessage("angal.medicals.activeonly.txt");
-	private static final String STR_DISABLED_ONLY = MessageBundle.getMessage("angal.medicals.disabledonly.txt");
-	
-	private String pSelection;
-	private String activeSelection = STR_ACTIVE_ONLY;
 	private List<MedicalType> pMedicalType;
 	private String[] pColumns = {
 			MessageBundle.getMessage("angal.common.code.txt").toUpperCase(),
-			MessageBundle.getMessage("angal.common.description.txt").toUpperCase()
+			MessageBundle.getMessage("angal.common.description.txt").toUpperCase(),
+			MessageBundle.getMessage("angal.common.deleted.label").toUpperCase()
 	};
-	private int[] pColumnWidth = {80, 200};
+	private final int[] pColumnWidth = { 20, 200, 20 };
 	private JPanel jContainPanel;
 	private JPanel jButtonPanel;
 	private JButton jNewButton;
 	private JButton jEditButton;
 	private JButton jCloseButton;
 	private JButton jDeleteButton;
-	private JComboBox activeComboBox;
 	private JTable jTable;
 	private MedicalTypeBrowserModel model;
 	private int selectedrow;
@@ -111,7 +102,6 @@ public class MedicalTypeBrowser extends ModalJFrame implements MedicalTypeListen
 	private JPanel getJButtonPanel() {
 		if (jButtonPanel == null) {
 			jButtonPanel = new JPanel();
-			jButtonPanel.add(getComboBoxActive());
 			jButtonPanel.add(getJNewButton(), null);
 			jButtonPanel.add(getJEditButton(), null);
 			jButtonPanel.add(getJDeleteButton(), null);
@@ -132,24 +122,6 @@ public class MedicalTypeBrowser extends ModalJFrame implements MedicalTypeListen
 			});
 		}
 		return jNewButton;
-	}
-	
-	private JComboBox getComboBoxActive() {
-		if (activeComboBox == null) {
-			activeComboBox = new JComboBox();
-			activeComboBox.addItem(STR_ACTIVE_ONLY);
-			activeComboBox.addItem(STR_ALL);
-			activeComboBox.addItem(STR_DISABLED_ONLY);
-			activeSelection = STR_ACTIVE_ONLY;
-		}
-		activeComboBox.addActionListener(actionEvent -> {
-			activeSelection = activeComboBox.getSelectedItem().toString();
-			model = new MedicalTypeBrowserModel();
-			jTable.setModel(model);
-			model.fireTableDataChanged();
-			jTable.updateUI();
-		});
-		return activeComboBox;
 	}
 	
 	/**
@@ -227,6 +199,7 @@ public class MedicalTypeBrowser extends ModalJFrame implements MedicalTypeListen
 			jTable = new JTable(model);
 			jTable.getColumnModel().getColumn(0).setMinWidth(pColumnWidth[0]);
 			jTable.getColumnModel().getColumn(1).setMinWidth(pColumnWidth[1]);
+			jTable.getColumnModel().getColumn(2).setMinWidth(pColumnWidth[2]);
 		}
 		return jTable;
 	}
@@ -239,11 +212,6 @@ public class MedicalTypeBrowser extends ModalJFrame implements MedicalTypeListen
 		public MedicalTypeBrowserModel() {
 			try {
 				pMedicalType = medicalTypeBrowserManager.getMedicalType();
-				if (activeSelection.equals(STR_ACTIVE_ONLY)) {
-					pMedicalType = new ArrayList<>(pMedicalType.stream().filter(med -> med.getDeleted() == 'N').toList());
-				} else if (activeSelection.equals(STR_DISABLED_ONLY)) {
-					pMedicalType = new ArrayList<>(pMedicalType.stream().filter(med -> med.getDeleted() == 'Y').toList());
-				}
 			} catch (OHServiceException e) {
 				pMedicalType = null;
 				OHServiceExceptionUtil.showMessages(e);
@@ -277,6 +245,8 @@ public class MedicalTypeBrowser extends ModalJFrame implements MedicalTypeListen
 				return medType.getCode();
 			} else if (c == 1) {
 				return medType.getDescription();
+			} else if (c == 2) {
+				return medType.getDeleted() == 'Y';
 			}
 			return null;
 		}
@@ -285,17 +255,21 @@ public class MedicalTypeBrowser extends ModalJFrame implements MedicalTypeListen
 		public boolean isCellEditable(int arg0, int arg1) {
 			return false;
 		}
+		
+		@Override
+		public Class getColumnClass(int column) {
+			return (column == 2) ? Boolean.class : String.class;
+		}
 	}
 
 	@Override
 	public void medicalTypeUpdated(AWTEvent e) {
 		pMedicalType.set(selectedrow, medicalType);
 		((MedicalTypeBrowserModel) jTable.getModel()).fireTableDataChanged();
+		jTable.updateUI();
 		if (jTable.getRowCount() > 0 && selectedrow > -1) {
 			jTable.setRowSelectionInterval(selectedrow, selectedrow);
 		}
-		model = new MedicalTypeBrowserModel();
-		jTable.updateUI();
 	}
 	
 	
@@ -306,6 +280,5 @@ public class MedicalTypeBrowser extends ModalJFrame implements MedicalTypeListen
 		if (jTable.getRowCount() > 0) {
 			jTable.setRowSelectionInterval(0, 0);
 		}
-		model = new MedicalTypeBrowserModel();
 	}
 }

@@ -96,7 +96,7 @@ public class MedicalTypeBrowserEdit extends JDialog {
 	private JButton cancelButton;
 	private JButton okButton;
 	private JTextField descriptionTextField;
-	private JCheckBox activeCheckbox;
+	private JCheckBox deletedCheckbox;
 	private VoLimitedTextField codeTextField;
 	private String lastdescription;
 	private char isLastDeleted;
@@ -128,11 +128,10 @@ public class MedicalTypeBrowserEdit extends JDialog {
 			this.setTitle(MessageBundle.getMessage("angal.medtype.editmedicaltype.title"));
 		}
 		this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-		this.getActiveField();
+		this.getDeletedField();
 		this.pack();
 		this.setLocationRelativeTo(null);
 	}
-	
 
 	/**
 	 * This method initializes jContentPane
@@ -203,7 +202,7 @@ public class MedicalTypeBrowserEdit extends JDialog {
 
 				medicalType.setDescription(descriptionTextField.getText());
 				medicalType.setCode(codeTextField.getText());
-				medicalType.setDeleted(activeCheckbox.isSelected() ? 'N' : 'Y');
+				medicalType.setDeleted(deletedCheckbox.isSelected() ? 'Y' : 'N');
 				
 				if (insert) { // inserting
 					try {
@@ -271,12 +270,12 @@ public class MedicalTypeBrowserEdit extends JDialog {
 		return codeTextField;
 	}
 	
-	private JCheckBox getActiveField() {
-		if (activeCheckbox == null) {
-			activeCheckbox = new JCheckBox("Active");
-			activeCheckbox.setSelected(medicalType.getDeleted() == 'N');
+	private JCheckBox getDeletedField() {
+		if (deletedCheckbox == null) {
+			deletedCheckbox = new JCheckBox(MessageBundle.getMessage("angal.common.deleted.label"));
+			deletedCheckbox.setSelected(medicalType.getDeleted() == 'Y');
 		}
-		return activeCheckbox;
+		return deletedCheckbox;
 	}
 
 	/**
@@ -291,8 +290,8 @@ public class MedicalTypeBrowserEdit extends JDialog {
 			jDataPanel.add(getCodeTextField());
 			jDataPanel.add(new JLabel(MessageBundle.getMessage("angal.common.description.txt") + ':'));
 			jDataPanel.add(getDescriptionTextField());
-			jDataPanel.add(new JLabel(MessageBundle.getMessage("Active") + ':'));
-			jDataPanel.add(getActiveField());
+			jDataPanel.add(new JLabel(MessageBundle.getMessage("angal.common.deleted.label") + ':'));
+			jDataPanel.add(getDeletedField());
 			SpringUtilities.makeCompactGrid(jDataPanel, 3, 2, 5, 5, 5, 5);
 		}
 		return jDataPanel;
